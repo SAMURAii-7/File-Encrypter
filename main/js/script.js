@@ -1,5 +1,8 @@
 var txt = "Select an option to continue";
 var i = 0;
+var getAlgo = "AES"
+var getAlgodec = "AES"
+var getval = 0
 function typeWriter() {
 	var speed = 50;
 	if (i < txt.length) {
@@ -37,6 +40,8 @@ $(function(){
 			alert('Please choose files smaller than 1mb, otherwise you may crash your browser.');
 			return;
 		}
+		var algo = document.getElementById("encAlgo");
+		getAlgo = algo.options[algo.selectedIndex].text;
 		step(3);
 	});
 	$('#step2').on('change', '#decrypt-input', function(e){
@@ -60,24 +65,69 @@ $(function(){
 		var reader = new FileReader();
 		if(body.hasClass('encrypt')){
 			reader.onload = function(e){
-				var encrypted = CryptoJS.AES.encrypt(e.target.result, password);
-				a.attr('href', 'data:application/octet-stream,' + encrypted);
-				a.attr('download', file.name + '.encrypted');
-				step(4);
+				if(getAlgo ==="AES"){
+					var encrypted = CryptoJS.AES.encrypt(e.target.result, password);
+					encrypted = '1' + encrypted;	
+					a.attr('href', 'data:application/octet-stream,' + encrypted);
+					a.attr('download', file.name + '.encrypted');
+					step(4);
+				}
+				if(getAlgo ==="DES"){
+					var encrypted = CryptoJS.DES.encrypt(e.target.result, password);
+					encrypted = '2' + encrypted;
+					a.attr('href', 'data:application/octet-stream,' + encrypted);
+					a.attr('download', file.name + '.encrypted');
+					step(4);
+				}
+				if(getAlgo ==="3DES"){
+					var encrypted = CryptoJS.TripleDES.encrypt(e.target.result, password);
+					encrypted = '3' + encrypted;
+					a.attr('href', 'data:application/octet-stream,' + encrypted);
+					a.attr('download', file.name + '.encrypted');
+					step(4);
+				}
 			};
 			reader.readAsDataURL(file);
 		}
 		else {
 			reader.onload = function(e){
-				var decrypted = CryptoJS.AES.decrypt(e.target.result, password)
-										.toString(CryptoJS.enc.Latin1);
-				if(!/^data:/.test(decrypted)){
-					alert("Invalid pass phrase or file! Please try again.");
-					return false;
+				var ciphertext = e.target.result
+				if(ciphertext.charAt(0)==="1"){				
+					ciphertext = ciphertext.replace('1','')	
+					var decrypted = CryptoJS.AES.decrypt(ciphertext, password)
+											.toString(CryptoJS.enc.Latin1);
+					if(!/^data:/.test(decrypted)){
+						alert("Invalid pass phrase or file! Please try again.");
+						return false;
+					}
+					a.attr('href', decrypted);
+					a.attr('download', file.name.replace('.encrypted',''));
+					step(4);
 				}
-				a.attr('href', decrypted);
-				a.attr('download', file.name.replace('.encrypted',''));
-				step(4);
+				if(ciphertext.charAt(0)==="2"){
+					ciphertext = ciphertext.replace('2','')	
+					var decrypted = CryptoJS.DES.decrypt(ciphertext, password)
+										.toString(CryptoJS.enc.Latin1);
+					if(!/^data:/.test(decrypted)){
+						alert("Invalid pass phrase or file! Please try again.");
+						return false;
+					}
+					a.attr('href', decrypted);
+					a.attr('download', file.name.replace('.encrypted',''));
+					step(4);
+				}
+				if(ciphertext.charAt(0)==="3"){
+					ciphertext = ciphertext.replace('3','')
+					var decrypted = CryptoJS.TripleDES.decrypt(ciphertext, password)
+										.toString(CryptoJS.enc.Latin1);
+					if(!/^data:/.test(decrypted)){
+						alert("Invalid pass phrase or file! Please try again.");
+						return false;
+					}
+					a.attr('href', decrypted);
+					a.attr('download', file.name.replace('.encrypted',''));
+					step(4);
+				}
 			};
 			reader.readAsText(file);
 		}
